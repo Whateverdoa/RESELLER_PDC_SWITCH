@@ -1,6 +1,7 @@
 import logging
 from typing import List, Dict, Tuple
 import requests
+from loguru import logger
 
 
 def send_token_to_server(token: str) -> None:
@@ -22,10 +23,10 @@ def send_token_to_server(token: str) -> None:
     # Check if the request was successful
     if response.status_code == 200:
         print("Successfully sent token. Server response:", response.json())
-        logging.info(f"Successfully sent token. Server response: {response.json()}")
+        logger.info(f"Successfully sent token. Server response: {response.json()}")
     else:
         print("Failed to send token. Status code:", response.status_code)
-        logging.error(f"Failed to send token. Status code: {response.status_code}")
+        logger.error(f"Failed to send token. Status code: {response.status_code}")
 
 
 # Example usage
@@ -71,11 +72,11 @@ def send_list_to_vila_fast_api(list_of_dicts_list, fastapi_url="http://localhost
 
             if status_code == 200:
                 print(f"Successfully sent {data_dict} to FastAPI endpoint.")
-                logging.info(f"Successfully sent {data_dict} to FastAPI endpoint.")
+                logger.info(f"Successfully sent {data_dict} to FastAPI endpoint.")
                 successful_sends += 1
             else:
                 print(f"Failed to send {data_dict}. Status code: {status_code}")
-                logging.error(f"Failed to send {data_dict}. Status code: {status_code}")
+                logger.error(f"Failed to send {data_dict}. Status code: {status_code}")
                 failed_sends += 1
 
     return successful_sends, failed_sends

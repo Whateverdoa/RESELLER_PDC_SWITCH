@@ -13,11 +13,30 @@ from extract_from_sql.sqlite_extract import collect_orders_from_database, fetch_
 from downloading.downloading_pdc_files import FileDownloader
 from orders_to_vila_fast_api.send_to_vila_fast_api import send_token_to_server
 from paden.pad import log_pad
-
 load_dotenv()
 
-logging.basicConfig(level=logging.INFO,filename=log_pad, format="%(asctime)s [%(levelname)s]: %(message)s")
-logging.info("Logging initialized")
+# logging.basicConfig(level=logging.INFO,filename=log_pad, format="%(asctime)s [%(levelname)s]: %(message)s")
+# logging.info("Logging initialized")
+
+
+from loguru import logger
+
+import notifiers
+from notifiers.logging import NotificationHandler
+
+params={
+    "username": 'miketenhoonte@gmail.com',
+    "password": 'ttut iart mvqd amob',
+    'to': 'mike@vila.nl'
+}
+
+notifier = notifiers.get_notifier("gmail")
+notifier.notify(message='Resellers PDC collect is running', **params)
+
+handler = NotificationHandler("gmail", defaults=params)
+logger.add(handler, level="ERROR")
+
+logger.add(log_pad, format="{time} {level} {message}", level="INFO")
 
 class PrintDotComAPI:
     def __init__(self, eagle_user, eagle_password, environment):
@@ -49,9 +68,9 @@ class PrintDotComAPI:
             self.token_value = "Bearer " + token.strip('\"')
             # print(self.token_value)
             self.token_valid = int((datetime.now().timestamp())) + 3600  # 1 hour validity
-            logging.info("Successfully authenticated")
+            logger.info("Successfully authenticated")
         except requests.RequestException as e:
-            logging.error(f"Authentication failed: {e}")
+            logger.error(f"Authentication failed: {e}")
             self.token_value = ""
             self.token_valid = 0
 
@@ -74,10 +93,10 @@ class PrintDotComAPI:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            logging.error(f"HTTP request failed: {e}")
+            logger.error(f"HTTP request failed: {e}")
             return None
         except ValueError as e:
-            logging.error(e)
+            logger.error(e)
             return None
 
     def update_job_status_with_message(self, item_id, new_status, message=""):
@@ -105,10 +124,10 @@ class PrintDotComAPI:
 
 
         if request_successful:
-            logging.info(f"Successfully updated order item {item_id} to status {new_status}.")
+            logger.info(f"Successfully updated order item {item_id} to status {new_status}.")
             return True
         else:
-            logging.error(f"Unable to set status to {new_status} for {item_id}.")
+            logger.error(f"Unable to set status to {new_status} for {item_id}.")
             return False
 
     def fetch_and_store_jobs_(self, status="SENTTOSUPPLIER"):
@@ -232,10 +251,10 @@ class PrintDotComAPI:
 
             conn.commit()
             conn.close()
-            logging.info(f"Successfully stored {len(jobs)} jobs in the database.")
+            logger.info(f"Successfully stored {len(jobs)} jobs in the database.")
             return jobs
         else:
-            logging.warning("No jobs fetched from the API.")
+            logger.warning("No jobs fetched from the API.")
             return []
 
 
